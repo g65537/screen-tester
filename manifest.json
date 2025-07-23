@@ -3,6 +3,7 @@
   "short_name": "Screen Tester",
   "description": "Screen defective pixels tester",
   "start_url": "/screen-tester/",
+  "scope": "/screen-tester/",
   "display": "fullscreen",
   "orientation": "any",
   "theme_color": "#000000",
