@@ -2,20 +2,37 @@
 <html>
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>screen defective pixels tester</title>
     <link rel="manifest" href="manifest.json">
     <style>
         html,
         body {
-            height: 100%;
-            width: 100%;
+            height: 100vh;
+            width: 100vw;
             margin: 0;
             padding: 0;
             background-color: black;
             overflow: hidden;
             touch-action: manipulation;
+            /* iOS PWA safe area handling */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        /* Make content fill the entire viewport including status bar area */
+        body {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 0;
         }
 
         svg {
@@ -47,8 +64,8 @@
     </svg>
     <pre id="tips">
         ========================== tips ===========================
-        <span class="tips-keyboard">press Enter/ESC to get or exit full-screen model           
-        press Space     to start or pause or continue test         
+        <span class="tips-keyboard">press Enter/ESC to get or exit full-screen model
+        press Space     to start or pause or continue test
         press Shift     to toggle the background color in test zone</span><span class="tips-touch" style="display:none">Add to Home Screen for better experience (PWA)
         Double Tap   to start test (auto fullscreen)
         Single Tap   to toggle the background color</span>
@@ -78,7 +95,7 @@
 
         // Detect PWA standalone mode
         function isPWAStandalone() {
-            return window.matchMedia('(display-mode: standalone)').matches || 
+            return window.matchMedia('(display-mode: standalone)').matches ||
                    window.navigator.standalone === true;
         }
 
@@ -145,52 +162,78 @@
         document.onkeydown = function (ev) {
             var e = ev || window.event;
             var key = e.which || e.keyCode || e.charCode;
-            
+
             if (key == 13) { // Enter
                 toggleFullscreen();
             } else if (key == 32) { // Space
                 togglePlayPause();
             }
-            
+
             if (e.shiftKey) { // Shift
                 changeColor();
             }
         };
 
         // Touch event support
-        let lastTapTime = 0;
+        let touchTimer = null;
+        let touchCounter = 0;
 
-        // Single tap - change color
-        body.addEventListener('click', function(e) {
-            console.log('Click event fired');
-            // Prevent single click on double click
-            if (new Date().getTime() - lastTapTime > 300) {
-                console.log('Single click action: changeColor');
-                changeColor();
+        // Handle touch events directly for better mobile support
+        body.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            console.log('Touch end event fired');
+
+            touchCounter++;
+
+            if (touchCounter === 1) {
+                // Wait to see if there's a second tap
+                touchTimer = setTimeout(function() {
+                    console.log('Single tap detected - changeColor');
+                    changeColor();
+                    touchCounter = 0;
+                }, 300);
+            } else if (touchCounter === 2) {
+                // Double tap detected
+                clearTimeout(touchTimer);
+                console.log('Double tap detected - togglePlayPause');
+                togglePlayPause();
+                touchCounter = 0;
             }
         });
 
-        // Double tap - play/pause
-        body.addEventListener('dblclick', function(e) {
-            console.log('Double click event fired');
-            e.preventDefault();
-            togglePlayPause();
-        });
+        // Fallback for non-touch devices (mouse clicks)
+        if (!isTouchDevice()) {
+            let clickTimer = null;
+            let clickCounter = 0;
 
-        // Update lastTapTime for click/dblclick detection
-        body.addEventListener('touchstart', function(e) {
-            lastTapTime = new Date().getTime();
-        });
+            body.addEventListener('click', function(e) {
+                console.log('Click event fired (non-touch)');
+                clickCounter++;
+
+                if (clickCounter === 1) {
+                    clickTimer = setTimeout(function() {
+                        console.log('Single click - changeColor');
+                        changeColor();
+                        clickCounter = 0;
+                    }, 300);
+                } else if (clickCounter === 2) {
+                    clearTimeout(clickTimer);
+                    console.log('Double click - togglePlayPause');
+                    togglePlayPause();
+                    clickCounter = 0;
+                }
+            });
+        }
 
         // Prevent zoom gestures but allow normal touch
         document.addEventListener('gesturestart', function(e) {
             e.preventDefault();
         });
-        
+
         document.addEventListener('gesturechange', function(e) {
             e.preventDefault();
         });
-        
+
         document.addEventListener('gestureend', function(e) {
             e.preventDefault();
         });
