@@ -1,0 +1,17 @@
+{
+  "name": "Screen Tester",
+  "short_name": "Screen Tester",
+  "description": "Screen defective pixels tester",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSIjMDAwMDAwIi8+CjxyZWN0IHg9IjUwIiB5PSI1MCIgd2lkdGg9IjQxMiIgaGVpZ2h0PSI0MTIiIGZpbGw9IiNGRkZGRkYiIHN0cm9rZT0iIzAwRkYwMCIgc3Ryb2tlLXdpZHRoPSI0Ii8+Cjx0ZXh0IHg9IjI1NiIgeT0iMjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMDBGRjAwIiBmb250LXNpemU9IjMyIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIj5URVNUIFNDUkVFTjwvdGV4dD4KPC9zdmc+",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

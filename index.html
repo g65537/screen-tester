@@ -3,7 +3,9 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
     <title>screen defective pixels tester</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         html,
         body {
@@ -13,7 +15,7 @@
             padding: 0;
             background-color: black;
             overflow: hidden;
-            touch-action: none;
+            touch-action: manipulation;
         }
 
         svg {
@@ -74,6 +76,12 @@
             return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         }
 
+        // Detect PWA standalone mode
+        function isPWAStandalone() {
+            return window.matchMedia('(display-mode: standalone)').matches || 
+                   window.navigator.standalone === true;
+        }
+
         if (isTouchDevice()) {
             document.querySelectorAll('.tips-keyboard').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.tips-touch').forEach(el => el.style.display = 'inline');
@@ -91,29 +99,45 @@
         }
 
         function togglePlayPause() {
+            console.log('togglePlayPause called, current status:', testzone_animate_status);
             switch (testzone_animate_status) {
                 case 0:
+                    console.log('Pausing animation');
                     svg.pauseAnimations();
                     testzone_animate_status = 1;
                     break;
                 case 1:
+                    console.log('Resuming animation');
                     svg.unpauseAnimations();
                     testzone_animate_status = 0;
                     break;
                 case undefined:
                 default:
+                    console.log('Starting animation');
                     tips.style.display = "none";
                     testzone_animate.beginElement();
                     testzone_animate_status = 0;
-                    // Auto fullscreen on mobile when starting
-                    if (isTouchDevice()) {
-                        body.requestFullscreen();
+                    // Auto fullscreen on mobile when starting (skip if already in PWA standalone mode)
+                    if (isTouchDevice() && !isPWAStandalone()) {
+                        console.log('Attempting fullscreen');
+                        setTimeout(() => {
+                            if (body.requestFullscreen) {
+                                body.requestFullscreen().catch(err => console.log('Fullscreen failed:', err));
+                            } else if (body.webkitRequestFullscreen) {
+                                body.webkitRequestFullscreen();
+                            } else if (body.mozRequestFullScreen) {
+                                body.mozRequestFullScreen();
+                            }
+                        }, 100);
+                    } else {
+                        console.log('Skipping fullscreen - PWA standalone mode or not touch device');
                     }
                     break;
             }
         }
 
         function changeColor() {
+            console.log('changeColor called');
             testzone.style.fill = color();
         }
 
@@ -138,14 +162,17 @@
 
         // Single tap - change color
         body.addEventListener('click', function(e) {
+            console.log('Click event fired');
             // Prevent single click on double click
             if (new Date().getTime() - lastTapTime > 300) {
+                console.log('Single click action: changeColor');
                 changeColor();
             }
         });
 
         // Double tap - play/pause
         body.addEventListener('dblclick', function(e) {
+            console.log('Double click event fired');
             e.preventDefault();
             togglePlayPause();
         });
@@ -155,12 +182,16 @@
             lastTapTime = new Date().getTime();
         });
 
-        // Prevent default touch behaviors (zoom, scroll, etc.)
-        document.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
-
+        // Prevent zoom gestures but allow normal touch
         document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('gesturechange', function(e) {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('gestureend', function(e) {
             e.preventDefault();
         });
     </script>
